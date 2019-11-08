@@ -1,0 +1,4 @@
+database: mydb
+querycustom: SELECT count(*) FROM test
+time: 10
+help: testdatabse
