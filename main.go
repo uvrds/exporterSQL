@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	nameQuery string  = "database"
+	nameQuery string = "database"
 	help      string = "test"
 	outSql           = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: nameQuery,
@@ -24,7 +24,7 @@ var (
 )
 
 type Query struct {
-	Database string
+	Database    string
 	Querycustom string
 }
 
@@ -42,13 +42,12 @@ func main() {
 		"--user=< > The user database postgres.")
 	password := flag.String("password", "",
 		"--password=< > The password for user database postgres.")
-	/*dbname := flag.String("dbname", "postgres",
-		"--dbname=< > Connect dbname postgres.")*/
+
 	flag.Parse()
 
-	dbname := getInfoQuery(*query,"dbname")
+	dbname := getInfoQuery(*query, "dbname")
 	nameQuery = dbname
-	queryCustom := getInfoQuery(*query,"queryCustom" )
+	queryCustom := getInfoQuery(*query, "queryCustom")
 
 	prometheus.MustRegister(outSql)
 
@@ -96,6 +95,7 @@ func run(host string, port string, user string, password string, dbname string, 
 		time.Sleep(time.Duration(5) * time.Second)
 	}
 }
+
 //получаем бд из query.yml
 func getInfoQuery(query string, value string) string {
 	var v string
@@ -110,7 +110,7 @@ func getInfoQuery(query string, value string) string {
 	}
 	if value == "dbname" {
 		v = config.Database
-	}else if value == "queryCustom"  {
+	} else if value == "queryCustom" {
 		v = config.Querycustom
 	}
 	return v
