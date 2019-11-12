@@ -1,0 +1,12 @@
+---
+rules_query:
+  -
+    database:   mydb
+    querycustom: SELECT count(*) FROM test
+    timeout: 10
+    help: my count
+  -
+    database:   mydb
+    querycustom: SELECT count(*) FROM test
+    timeout: 10
+    help: my count2
