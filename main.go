@@ -32,7 +32,7 @@ func main() {
 
 	portWeb := flag.String("listen-address", ":9493",
 		"--listen-address=< > The address to listen on for HTTP requests.")
-	query := flag.String("config", "./query.yml",
+	query := flag.String("config", "/opt/exporterSql/query.yml",
 		"--query=< > The path to file query.")
 	host := flag.String("host", "localhost",
 		"--host=< > The server database postgres.")
