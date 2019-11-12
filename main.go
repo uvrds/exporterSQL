@@ -32,7 +32,7 @@ func main() {
 
 	portWeb := flag.String("listen-address", ":9493",
 		"--listen-address=< > The address to listen on for HTTP requests.")
-	query := flag.String("config", "/opt/exporterSql/query.yml",
+	query := flag.String("config", "/opt/postgresSql/query.yml",
 		"--query=< > The path to file query.")
 	host := flag.String("host", "localhost",
 		"--host=< > The server database postgres.")
@@ -96,7 +96,7 @@ func connectDB(host string, port string, user string, password string, dbname st
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected database")
+	fmt.Println("Successfully connected database" + dbname)
 
 	var col1 float64
 	rows, err := db.Query(queryCustom)
