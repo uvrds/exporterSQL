@@ -11,6 +11,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -48,17 +50,24 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 	log.Printf("Starting web server at %s\n", *portWeb)
 	for i := 0; i < getInfoCount(*query); i++ {
-		go run(*host, *port, *user, *password, getInfoQuery(*query, "dbname", i), getInfoQuery(*query, "queryCustom", i),
+
+		t, err := strconv.Atoi(getInfoQuery(*query, "timeout", i))
+		if err != nil {
+			// handle error
+			fmt.Println(err)
+			os.Exit(2)
+		}
+		go run(*host, *port, *user, *password, getInfoQuery(*query, "dbname", i), getInfoQuery(*query, "queryCustom", i), t,
 			creatGauge(getInfoQuery(*query, "name", i), getInfoQuery(*query, "queryCustom", i), getInfoQuery(*query, "dbname", i)))
 	}
 	log.Fatal(http.ListenAndServe(*portWeb, nil))
 
 }
 
-func run(host string, port string, user string, password string, dbname string, queryCustom string, gauge prometheus.Gauge) {
+func run(host string, port string, user string, password string, dbname string, queryCustom string, timeout int, gauge prometheus.Gauge) {
 	for {
 		gauge.Set(connectDB(host, port, user, password, dbname, queryCustom))
-		time.Sleep(time.Duration(5) * time.Second)
+		time.Sleep(time.Duration(timeout) * time.Second)
 	}
 }
 
@@ -124,6 +133,8 @@ func getInfoQuery(query string, check string, icheck int) string {
 		v = config.Rules_query[icheck].Help
 	} else if check == "name" {
 		v = config.Rules_query[icheck].Name
+	} else if check == "timeout" {
+		v = config.Rules_query[icheck].Timeout
 	}
 
 	return v
