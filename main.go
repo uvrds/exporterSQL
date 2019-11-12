@@ -15,6 +15,7 @@ import (
 )
 
 type Rule struct {
+	Name        string `yaml:"name"`
 	Database    string `yaml:"database"`
 	Querycustom string `yaml:"querycustom"`
 	Timeout     string `yaml:"timeout"`
@@ -42,15 +43,13 @@ func main() {
 
 	flag.Parse()
 
-	ir := "Test"
-	//  db := "ere"
+	fmt.Println(getInfoQuery(*query, "dbname", 1))
 
 	http.Handle("/metrics", promhttp.Handler())
 	log.Printf("Starting web server at %s\n", *portWeb)
 	for i := 0; i < getInfoCount(*query); i++ {
-		go run(*host, *port, *user, *password, getInfoQuery(*query, "dbname", i), getInfoQuery(*query, "queryCustom", i), creatGauge(getInfoQuery(*query, "dbname", i), ir))
-		ir = "test"
-		//db = "dsfg"
+		go run(*host, *port, *user, *password, getInfoQuery(*query, "dbname", i), getInfoQuery(*query, "queryCustom", i),
+			creatGauge(getInfoQuery(*query, "name", i), getInfoQuery(*query, "queryCustom", i), getInfoQuery(*query, "dbname", i)))
 	}
 	log.Fatal(http.ListenAndServe(*portWeb, nil))
 
@@ -63,10 +62,11 @@ func run(host string, port string, user string, password string, dbname string, 
 	}
 }
 
-func creatGauge(dbname string, help string) prometheus.Gauge {
+func creatGauge(dbname string, help string, namespace string) prometheus.Gauge {
 	outSql := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: dbname,
-		Help: help,
+		Name:      dbname,
+		Help:      help,
+		Namespace: namespace,
 	})
 
 	prometheus.MustRegister(outSql)
@@ -77,7 +77,6 @@ func connectDB(host string, port string, user string, password string, dbname st
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	fmt.Println(psqlInfo)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
@@ -119,13 +118,12 @@ func getInfoQuery(query string, check string, icheck int) string {
 	}
 	if check == "dbname" {
 		v = config.Rules_query[icheck].Database
-		if icheck > 1 {
-			v += string(icheck)
-		}
 	} else if check == "queryCustom" {
 		v = config.Rules_query[icheck].Querycustom
 	} else if check == "help" {
 		v = config.Rules_query[icheck].Help
+	} else if check == "name" {
+		v = config.Rules_query[icheck].Name
 	}
 
 	return v
