@@ -46,8 +46,6 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Println(getInfoQuery(*query, "dbname", 1))
-
 	http.Handle("/metrics", promhttp.Handler())
 	log.Printf("Starting web server at %s\n", *portWeb)
 	for i := 0; i < getInfoCount(*query); i++ {
@@ -100,7 +98,7 @@ func connectDB(host string, port string, user string, password string, dbname st
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected database" + dbname)
+	fmt.Println("Successfully connected database " + dbname)
 
 	var col1 float64
 	rows, err := db.Query(queryCustom)

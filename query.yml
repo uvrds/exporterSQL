@@ -1,14 +1,8 @@
 ---
 rules_query:
   -
-    name: test
-    database:   mydb
-    querycustom: SELECT count(*) FROM test
+    name: Article
+    database: test
+    querycustom: SELECT count(*) FROM article
     timeout: 10
     help: my count
-  -
-    name: test2
-    database:   mydb
-    querycustom: SELECT count(*) FROM test2
-    timeout: 5
-    help: my count2
