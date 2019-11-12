@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+//struct yaml
 type Rule struct {
 	Name        string `yaml:"name"`
 	Database    string `yaml:"database"`
@@ -64,6 +65,7 @@ func main() {
 
 }
 
+//run func get value
 func run(host string, port string, user string, password string, dbname string, queryCustom string, timeout int, gauge prometheus.Gauge) {
 	for {
 		gauge.Set(connectDB(host, port, user, password, dbname, queryCustom))
@@ -71,6 +73,7 @@ func run(host string, port string, user string, password string, dbname string, 
 	}
 }
 
+//creatGauge for metrics prometheus
 func creatGauge(dbname string, help string, namespace string) prometheus.Gauge {
 	outSql := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:      dbname,
@@ -82,6 +85,7 @@ func creatGauge(dbname string, help string, namespace string) prometheus.Gauge {
 	return outSql
 }
 
+//connect database
 func connectDB(host string, port string, user string, password string, dbname string, queryCustom string) float64 {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
@@ -112,8 +116,7 @@ func connectDB(host string, port string, user string, password string, dbname st
 	return col1
 }
 
-//получаем бд из query.yml
-
+//get all info from query.yml
 func getInfoQuery(query string, check string, icheck int) string {
 	var v string
 	var config Query
@@ -140,6 +143,7 @@ func getInfoQuery(query string, check string, icheck int) string {
 	return v
 }
 
+// get cont query in yaml
 func getInfoCount(query string) int {
 
 	var v int
