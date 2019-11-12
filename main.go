@@ -14,18 +14,15 @@ import (
 	"time"
 )
 
-var (
-	nameQuery string = "database"
-	help      string = "test"
-	outSql           = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: nameQuery,
-		Help: help,
-	})
-)
+type Rule struct {
+	Database    string `yaml:"database"`
+	Querycustom string `yaml:"querycustom"`
+	Timeout     string `yaml:"timeout"`
+	Help        string `yaml:"help"`
+}
 
 type Query struct {
-	Database    string
-	Querycustom string
+	Rules_query []Rule `yaml:"rules_query"`
 }
 
 func main() {
@@ -45,17 +42,35 @@ func main() {
 
 	flag.Parse()
 
-	dbname := getInfoQuery(*query, "dbname")
-	nameQuery = dbname
-	queryCustom := getInfoQuery(*query, "queryCustom")
-
-	prometheus.MustRegister(outSql)
+	ir := "Test"
+	//  db := "ere"
 
 	http.Handle("/metrics", promhttp.Handler())
 	log.Printf("Starting web server at %s\n", *portWeb)
-	go run(*host, *port, *user, *password, dbname, queryCustom)
+	for i := 0; i < getInfoCount(*query); i++ {
+		go run(*host, *port, *user, *password, getInfoQuery(*query, "dbname", i), getInfoQuery(*query, "queryCustom", i), creatGauge(getInfoQuery(*query, "dbname", i), ir))
+		ir = "test"
+		//db = "dsfg"
+	}
 	log.Fatal(http.ListenAndServe(*portWeb, nil))
 
+}
+
+func run(host string, port string, user string, password string, dbname string, queryCustom string, gauge prometheus.Gauge) {
+	for {
+		gauge.Set(connectDB(host, port, user, password, dbname, queryCustom))
+		time.Sleep(time.Duration(5) * time.Second)
+	}
+}
+
+func creatGauge(dbname string, help string) prometheus.Gauge {
+	outSql := prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: dbname,
+		Help: help,
+	})
+
+	prometheus.MustRegister(outSql)
+	return outSql
 }
 
 func connectDB(host string, port string, user string, password string, dbname string, queryCustom string) float64 {
@@ -89,15 +104,9 @@ func connectDB(host string, port string, user string, password string, dbname st
 	return col1
 }
 
-func run(host string, port string, user string, password string, dbname string, queryCustom string) {
-	for {
-		outSql.Set(connectDB(host, port, user, password, dbname, queryCustom))
-		time.Sleep(time.Duration(5) * time.Second)
-	}
-}
-
 //получаем бд из query.yml
-func getInfoQuery(query string, value string) string {
+
+func getInfoQuery(query string, check string, icheck int) string {
 	var v string
 	var config Query
 	source, err := ioutil.ReadFile(query)
@@ -108,10 +117,34 @@ func getInfoQuery(query string, value string) string {
 	if err != nil {
 		panic(err)
 	}
-	if value == "dbname" {
-		v = config.Database
-	} else if value == "queryCustom" {
-		v = config.Querycustom
+	if check == "dbname" {
+		v = config.Rules_query[icheck].Database
+		if icheck > 1 {
+			v += string(icheck)
+		}
+	} else if check == "queryCustom" {
+		v = config.Rules_query[icheck].Querycustom
+	} else if check == "help" {
+		v = config.Rules_query[icheck].Help
 	}
+
 	return v
+}
+
+func getInfoCount(query string) int {
+
+	var v int
+	var config Query
+	source, err := ioutil.ReadFile(query)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(source, &config)
+	if err != nil {
+		panic(err)
+	}
+	v = len(config.Rules_query)
+
+	return v
+
 }
